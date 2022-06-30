@@ -1,20 +1,30 @@
-import React from 'react';
+import React, {useContext, useState} from 'react';
 import ListItem from "./ListItem";
-import {Nav} from "react-bootstrap";
+import {DBContext} from "./DBProvider";
 
 function SideBar() {
+    const {setActiveNote, activeNote, notes} = useContext(DBContext)
+
+    console.log("Here", activeNote)
+    console.log("All notes", notes)
     return (
-        <Nav defaultActiveKey="/home" variant="tabs" className="flex-column mt-4">
-            <Nav.Link href="/home">
-                <ListItem />
-            </Nav.Link>
-            <Nav.Link eventKey="link-1">
-                <ListItem />
-            </Nav.Link>
-            <Nav.Link eventKey="link-2">
-                <ListItem />
-            </Nav.Link>
-        </Nav>
+        <ul>
+            {
+                notes
+                    .map(note => (
+                        <li
+                            className={note.id === activeNote?.id ? 'active' : ''}
+                            onClick={() => setActiveNote(note)}
+                            key={note.id}
+                            style={{listStyle: 'none'}}
+                        >
+                            <ListItem
+                                title={note.title}
+                                body={note.body}
+                            />
+                        </li>))
+            }
+        </ul>
     );
 }
 

@@ -1,17 +1,20 @@
-import React from 'react';
-import {Form} from "react-bootstrap";
+import React, {useContext} from 'react';
+import {NoteForm} from "./NoteForm";
+import {DBContext} from "./DBProvider";
 
 function WorkSpace() {
-    return (
-        <div className="mt-4 me-2">
-            <Form className="w-100 min-vh-100">
-                <Form.Group controlId="exampleForm.ControlTextarea1">
-                    <Form.Label >Type your note</Form.Label>
-                    <Form.Control as="textarea" name="address" />
-                </Form.Group>
-            </Form>
+    const {activeNote} = useContext(DBContext)
+    if (!activeNote) {
+        return <div>
+            <NoteForm />
         </div>
-    );
+    } else return (
+        <div>
+            <h3>{activeNote.title}</h3>
+            <p>{activeNote.body}</p>
+        </div>
+
+    )
 }
 
 export default WorkSpace;
