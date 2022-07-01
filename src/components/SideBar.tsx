@@ -1,12 +1,9 @@
-import React, {useContext, useState} from 'react';
+import React from 'react';
 import ListItem from "./ListItem";
-import {DBContext} from "./DBProvider";
+import {useDbContext} from "./DBProvider";
 
 function SideBar() {
-    const {setActiveNote, activeNote, notes} = useContext(DBContext)
-
-    console.log("Here", activeNote)
-    console.log("All notes", notes)
+    const {setActiveNote, activeNote, notes, processingNote, isEditing} = useDbContext()
     return (
         <ul>
             {
@@ -19,8 +16,8 @@ function SideBar() {
                             style={{listStyle: 'none'}}
                         >
                             <ListItem
-                                title={note.title}
-                                body={note.body}
+                                title={note.id === activeNote?.id && isEditing ? processingNote.title : note.title}
+                                body={note.id === activeNote?.id && isEditing ? processingNote.body : note.body}
                             />
                         </li>))
             }

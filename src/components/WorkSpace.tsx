@@ -1,14 +1,14 @@
-import React, {useContext} from 'react';
+import React from 'react';
 import {NoteForm} from "./NoteForm";
-import {DBContext} from "./DBProvider";
+import { useDbContext} from "./DBProvider";
 
 function WorkSpace() {
-    const {activeNote} = useContext(DBContext)
-    if (!activeNote) {
-        return <div>
-            <NoteForm />
-        </div>
-    } else return (
+    const {activeNote, isAdding, isEditing} = useDbContext();
+    if (isAdding || isEditing) {
+        return <NoteForm />
+    }
+    if(!activeNote) return <div>Loading...</div>
+    return (
         <div>
             <h3>{activeNote.title}</h3>
             <p>{activeNote.body}</p>

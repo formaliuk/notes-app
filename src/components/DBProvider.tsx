@@ -1,30 +1,54 @@
-import React, {createContext, useState} from 'react';
+import React, {createContext, useContext, useEffect, useState} from 'react';
 
 interface State {
+    isAdding: boolean;
+    isEditing: boolean;
+    setIsAdding: () => void,
+    setIsEditing: () => void,
     activeNote: Note | null;
     setActiveNote:  React.Dispatch<React.SetStateAction<Note | null>>,
+    processingNote: EditableNote,
+    setProcessingNote:  React.Dispatch<React.SetStateAction<EditableNote>>,
     notes: Note[];
     addNote: (title: string, body: string) => void;
     deleteNote: (id: number) => void;
 }
 
-interface Note {
+interface EditableNote {
     title: string;
     body: string;
+}
+
+interface Note extends EditableNote{
     id:number
 }
 
-export const DBContext = createContext<State>({
-    activeNote: null,
-    setActiveNote: () => {},
-    notes: [],
-    addNote: () => {},
-    deleteNote: () => {}
-});
+export const DBContext = createContext<State | undefined>(undefined);
+
+// just to shut up ts
+export const useDbContext = () => {
+    const dbContext = useContext(DBContext);
+    if (!dbContext)
+        throw new Error(
+            'No DBContext.Provider found when calling useDbContext.'
+        );
+    return dbContext;
+};
+
+function useToggle(initialValue: boolean): [boolean, () => void] {
+    const [value, setValue] = useState<boolean>(initialValue);
+    const toggle = () => {
+        setValue(!value);
+    }
+    return [value, toggle];
+}
 
 
 export const DBProvider = (props: any) => {
+    const [isAdding, setIsAdding] = useToggle(false);
+    const [isEditing, setIsEditing] = useToggle(false);
     const [activeNote, setActiveNote] = useState<Note | null>(null);
+    const [processingNote, setProcessingNote] = useState<EditableNote >({title:"", body:""});
     const [notes, setNotes] = useState<Note[]>([
         {
             title: 'note1',
@@ -43,6 +67,10 @@ export const DBProvider = (props: any) => {
         }
     ]);
 
+    useEffect(() => {
+        setActiveNote(notes[0]);
+    }, [])
+
     const addNote = function (title: string, body: string) {
         setNotes((prevNotes) => [...prevNotes, {title, body, id: Date.now()}]);
     }
@@ -52,8 +80,14 @@ export const DBProvider = (props: any) => {
     }
 
     const value: State = {
+        isAdding,
+        isEditing,
+        setIsAdding,
+        setIsEditing,
         activeNote,
         setActiveNote,
+        processingNote,
+        setProcessingNote,
         notes,
         addNote,
         deleteNote,
