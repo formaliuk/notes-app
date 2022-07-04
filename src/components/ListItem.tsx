@@ -4,17 +4,21 @@ import {Card} from "react-bootstrap";
 interface ListItemProps {
     title: string;
     body: string;
+    isActive: boolean;
 }
 
-function ListItem({title, body}: ListItemProps) {
+
+function ListItem({title, body, isActive}: ListItemProps) {
     return (
-            <Card className="overflow-hidden pb-3" style={{ width: '18rem', maxHeight: '7.9rem'}}>
-                <Card.Body className="mb-3">
-                    <Card.Title>{title}</Card.Title>
-                    <Card.Subtitle className="text-muted mb-2">{new Date().toLocaleDateString()}</Card.Subtitle>
-                    <Card.Text>{body}</Card.Text>
-                </Card.Body>
-            </Card>
+        <Card className={isActive ? "bg-dark border-3 border-warning m-2" : "bg-dark m-2"}>
+            <Card.Body className="text-light">
+                <Card.Title>{title}</Card.Title>
+                <Card.Text>{body.substring(0, 55)}</Card.Text>
+            </Card.Body>
+            <Card.Footer>
+                <small className="text-muted">Created {new Date().toLocaleDateString()}</small>
+            </Card.Footer>
+        </Card>
     );
 }
 

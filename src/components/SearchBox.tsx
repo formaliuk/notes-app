@@ -1,12 +1,20 @@
-import React from 'react';
+import React, {SyntheticEvent} from 'react';
+import {useDbContext} from "./DBProvider";
 
 function SearchBox() {
+    const {setSearchInput, activeNote, setActiveNote} = useDbContext();
+
+    const inputHandler = (e: SyntheticEvent) => {
+        if (activeNote) setActiveNote(null)
+        // @ts-ignore
+        setSearchInput(e.target.value)
+    }
+
     return (
         <div>
             <div className="input-group">
-                <input type="search" className="form-control rounded" placeholder="Search" aria-label="Search"
+                <input onInput={inputHandler} type="search" className="form-control rounded bg-dark text-light" placeholder="Search" aria-label="Search"
                        aria-describedby="search-addon"/>
-                <button type="button" className="btn btn-outline-primary">search</button>
             </div>
         </div>
     );

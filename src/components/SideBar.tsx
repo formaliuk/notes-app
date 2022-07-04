@@ -3,19 +3,20 @@ import ListItem from "./ListItem";
 import {useDbContext} from "./DBProvider";
 
 function SideBar() {
-    const {setActiveNote, activeNote, notes, processingNote, isEditing} = useDbContext()
+    const {setActiveNote, activeNote, processingNote, isEditing, filterNotes} = useDbContext()
     return (
         <ul>
             {
-                notes
+                filterNotes()
                     .map(note => (
                         <li
-                            className={note.id === activeNote?.id ? 'active' : ''}
+                            // className={note.id === activeNote?.id ? 'active' : ''}
                             onClick={() => setActiveNote(note)}
                             key={note.id}
                             style={{listStyle: 'none'}}
                         >
                             <ListItem
+                                isActive={note.id === activeNote?.id}
                                 title={note.id === activeNote?.id && isEditing ? processingNote.title : note.title}
                                 body={note.id === activeNote?.id && isEditing ? processingNote.body : note.body}
                             />

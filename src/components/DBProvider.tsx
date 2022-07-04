@@ -3,15 +3,20 @@ import React, {createContext, useContext, useEffect, useState} from 'react';
 interface State {
     isAdding: boolean;
     isEditing: boolean;
-    setIsAdding: () => void,
-    setIsEditing: () => void,
+    setIsAdding: () => void;
+    setIsEditing: () => void;
     activeNote: Note | null;
-    setActiveNote:  React.Dispatch<React.SetStateAction<Note | null>>,
-    processingNote: EditableNote,
-    setProcessingNote:  React.Dispatch<React.SetStateAction<EditableNote>>,
+    setActiveNote:  React.Dispatch<React.SetStateAction<Note | null>>;
+    processingNote: EditableNote;
+    setProcessingNote:  React.Dispatch<React.SetStateAction<EditableNote>>;
     notes: Note[];
-    addNote: (title: string, body: string) => void;
-    deleteNote: (id: number) => void;
+    filterNotes: () => Note[];
+    addNote: () => void;
+    updateNote: () => void;
+    deleteNote: () => void;
+    showModal: boolean;
+    setShowModal: React.Dispatch<React.SetStateAction<boolean>>;
+    setSearchInput: React.Dispatch<React.SetStateAction<string>>;
 }
 
 interface EditableNote {
@@ -20,7 +25,7 @@ interface EditableNote {
 }
 
 interface Note extends EditableNote{
-    id:number
+    id:number;
 }
 
 export const DBContext = createContext<State | undefined>(undefined);
@@ -43,12 +48,30 @@ function useToggle(initialValue: boolean): [boolean, () => void] {
     return [value, toggle];
 }
 
+const initialState = [
+    {
+        title: 'note1',
+        body: 'this is a body text of a note1',
+        id: 1
+    },
+    {
+        title: 'note2',
+        body: 'this is a body text of a note2',
+        id: 2
+    },
+    {
+        title: 'note3',
+        body: 'this is a body text of a note3',
+        id: 3
+    }
+]
 
 export const DBProvider = (props: any) => {
     const [isAdding, setIsAdding] = useToggle(false);
     const [isEditing, setIsEditing] = useToggle(false);
     const [activeNote, setActiveNote] = useState<Note | null>(null);
     const [processingNote, setProcessingNote] = useState<EditableNote >({title:"", body:""});
+    const [showModal, setShowModal] = useState(false);
     const [notes, setNotes] = useState<Note[]>([
         {
             title: 'note1',
@@ -66,17 +89,58 @@ export const DBProvider = (props: any) => {
             id: 3
         }
     ]);
+    const [searchInput, setSearchInput] = useState('')
 
     useEffect(() => {
         setActiveNote(notes[0]);
     }, [])
 
-    const addNote = function (title: string, body: string) {
-        setNotes((prevNotes) => [...prevNotes, {title, body, id: Date.now()}]);
+    const filterNotes = function () {
+        return notes.filter(function (note) {
+                return note.body.toLowerCase().includes(searchInput) || note.title.toLowerCase().includes(searchInput)
+            })
     }
 
-    const deleteNote = (id: number) => {
-        setNotes(notes.filter(note => note.id !== id));
+    const addNote = function () {
+        if(isAdding) {
+            setNotes((prevNotes) => [...prevNotes, {
+                title: processingNote.title,
+                body: processingNote.body,
+                id: Date.now()
+            }]);
+        } else {
+            setProcessingNote({
+                title: "",
+                body: "",
+            });
+        }
+        setIsAdding();
+        setActiveNote(null);
+    }
+
+    const updateNote = function () {
+        if(isEditing) {
+            const index = notes.findIndex((note) => note.id === activeNote!.id);
+            setNotes(notes => {
+                const newNotes = [...notes];
+                newNotes[index].title = processingNote.title;
+                newNotes[index].body = processingNote.body;
+                return newNotes;
+            })
+        } else {
+            setProcessingNote({
+                title: activeNote!.title,
+                body: activeNote!.body,
+            });
+        }
+        setIsEditing();
+    }
+
+
+    const deleteNote = () => {
+        const newNotes = notes.filter(note => note.id !== activeNote!.id);
+        setNotes(newNotes);
+        setActiveNote(newNotes[0]);
     }
 
     const value: State = {
@@ -89,8 +153,13 @@ export const DBProvider = (props: any) => {
         processingNote,
         setProcessingNote,
         notes,
+        filterNotes,
         addNote,
+        updateNote,
         deleteNote,
+        showModal,
+        setShowModal,
+        setSearchInput,
     }
 
     return (
