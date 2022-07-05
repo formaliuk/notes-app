@@ -10,10 +10,9 @@ function SideBar() {
                 filterNotes()
                     .map(note => (
                         <li
-                            // className={note.id === activeNote?.id ? 'active' : ''}
                             onClick={() => setActiveNote(note)}
                             key={note.id}
-                            style={{listStyle: 'none'}}
+                            style={{listStyle: 'none', marginLeft: '-32px'}}
                         >
                             <ListItem
                                 isActive={note.id === activeNote?.id}

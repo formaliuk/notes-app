@@ -1,11 +1,17 @@
-import React, {useContext, useState} from 'react';
-import {Container, Row, Col, Button} from "react-bootstrap";
+import React from 'react';
+import {Container, Row, Col} from "react-bootstrap";
 import SideBar from "./SideBar";
 import Header from "./Header";
 import WorkSpace from "./WorkSpace";
 import {DeletingModal} from "./DeletingModal";
+import {useDbContext} from "./DBProvider";
 
 function App() {
+    const {
+        error
+    } = useDbContext();
+
+    if(error) return <div>Error occurred. {error}</div>
 
     return (
         <div className="App border-2">
@@ -15,7 +21,7 @@ function App() {
                         <Header/>
                     </Col>
                 </Row>
-                <Row>
+                <Row className="pt-2">
                     <Col sm={4}>
                         <SideBar/>
                     </Col>

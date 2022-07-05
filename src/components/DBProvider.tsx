@@ -1,4 +1,6 @@
 import React, {createContext, useContext, useEffect, useState} from 'react';
+import { openDB } from 'idb';
+import {IDBPDatabase} from "idb/build/entry";
 
 interface State {
     isAdding: boolean;
@@ -17,6 +19,8 @@ interface State {
     showModal: boolean;
     setShowModal: React.Dispatch<React.SetStateAction<boolean>>;
     setSearchInput: React.Dispatch<React.SetStateAction<string>>;
+    notesLoaded: boolean;
+    error: string | null;
 }
 
 interface EditableNote {
@@ -25,12 +29,13 @@ interface EditableNote {
 }
 
 interface Note extends EditableNote{
-    id:number;
+    id: number;
+    createdOn: number;
 }
 
 export const DBContext = createContext<State | undefined>(undefined);
 
-// just to shut up ts
+// To fix useContext default value
 export const useDbContext = () => {
     const dbContext = useContext(DBContext);
     if (!dbContext)
@@ -48,52 +53,51 @@ function useToggle(initialValue: boolean): [boolean, () => void] {
     return [value, toggle];
 }
 
-const initialState = [
-    {
-        title: 'note1',
-        body: 'this is a body text of a note1',
-        id: 1
-    },
-    {
-        title: 'note2',
-        body: 'this is a body text of a note2',
-        id: 2
-    },
-    {
-        title: 'note3',
-        body: 'this is a body text of a note3',
-        id: 3
-    }
-]
-
 export const DBProvider = (props: any) => {
     const [isAdding, setIsAdding] = useToggle(false);
     const [isEditing, setIsEditing] = useToggle(false);
     const [activeNote, setActiveNote] = useState<Note | null>(null);
     const [processingNote, setProcessingNote] = useState<EditableNote >({title:"", body:""});
     const [showModal, setShowModal] = useState(false);
-    const [notes, setNotes] = useState<Note[]>([
-        {
-            title: 'note1',
-            body: 'this is a body text of a note1',
-            id: 1
-        },
-        {
-            title: 'note2',
-            body: 'this is a body text of a note2',
-            id: 2
-        },
-        {
-            title: 'note3',
-            body: 'this is a body text of a note3',
-            id: 3
-        }
-    ]);
+    const [notes, setNotes] = useState<Note[]>([]);
+    const [notesLoaded, setNotesLoaded] = useToggle(false);
     const [searchInput, setSearchInput] = useState('')
+    const [db, setDb] = useState<IDBPDatabase | null>(null);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
+        connectToDb();
+
+        async function connectToDb() {
+            try {
+                const db = await openDB('notesDb', 2, {
+                        upgrade(db) {
+                            db.createObjectStore('notes', {keyPath: 'id', autoIncrement:true});
+                        }
+                    }
+                );
+                setDb(db);
+            } catch(err) {
+                console.log("Db connection error");
+                // @ts-ignore
+                setError(err.message);
+            }
+
+        }
+    }, []);
+
+    useEffect(() => {
+        if(db !== null) getNotes();
+    }, [db])
+
+    async function getNotes() {
+        let tx = db!.transaction('notes');
+        let notesStore = tx.objectStore('notes');
+        let notes = await notesStore.getAll();
+        setNotes(notes);
         setActiveNote(notes[0]);
-    }, [])
+        setNotesLoaded();
+    }
 
     const filterNotes = function () {
         return notes.filter(function (note) {
@@ -101,32 +105,56 @@ export const DBProvider = (props: any) => {
             })
     }
 
-    const addNote = function () {
+    const addNote = async function () {
         if(isAdding) {
-            setNotes((prevNotes) => [...prevNotes, {
-                title: processingNote.title,
-                body: processingNote.body,
-                id: Date.now()
-            }]);
+            let tx = db!.transaction('notes', 'readwrite');
+            try {
+                const noteId = await tx.objectStore('notes').add({
+                    title: processingNote.title,
+                    body: processingNote.body,
+                    createdOn: Date.now()
+                });
+                const createdNote: Note = await tx.objectStore('notes').get(noteId)
+                setNotes((prevNotes) => [...prevNotes, {
+                    ...createdNote
+                }]);
+                setActiveNote(createdNote);
+            } catch(err) {
+                console.log("Add to db error")
+                // @ts-ignore
+                setError(err.message);
+            }
         } else {
             setProcessingNote({
                 title: "",
                 body: "",
             });
+            setActiveNote(null);
         }
         setIsAdding();
-        setActiveNote(null);
     }
 
-    const updateNote = function () {
+    const updateNote = async function () {
         if(isEditing) {
-            const index = notes.findIndex((note) => note.id === activeNote!.id);
-            setNotes(notes => {
-                const newNotes = [...notes];
-                newNotes[index].title = processingNote.title;
-                newNotes[index].body = processingNote.body;
-                return newNotes;
-            })
+            let tx = db!.transaction('notes', 'readwrite');
+            try {
+                await tx.objectStore('notes').put({
+                    title: processingNote.title,
+                    body: processingNote.body,
+                    id: activeNote!.id
+                });
+                const index = notes.findIndex((note) => note.id === activeNote!.id);
+                setNotes(notes => {
+                    const newNotes = [...notes];
+                    newNotes[index].title = processingNote.title;
+                    newNotes[index].body = processingNote.body;
+                    return newNotes;
+                })
+            } catch(err) {
+                console.log("Update db error")
+                // @ts-ignore
+                setError(err.message);
+            }
         } else {
             setProcessingNote({
                 title: activeNote!.title,
@@ -138,9 +166,18 @@ export const DBProvider = (props: any) => {
 
 
     const deleteNote = () => {
-        const newNotes = notes.filter(note => note.id !== activeNote!.id);
-        setNotes(newNotes);
-        setActiveNote(newNotes[0]);
+        let tx = db!.transaction('notes', 'readwrite');
+        try {
+            const notesStore = tx.objectStore('notes');
+            notesStore.delete(activeNote!.id);
+            const newNotes = notes.filter(note => note.id !== activeNote!.id);
+            setNotes(newNotes);
+            setActiveNote(newNotes[0]);
+        } catch(err) {
+            console.log("Delete from db error")
+            // @ts-ignore
+            setError(err.message);
+        }
     }
 
     const value: State = {
@@ -160,6 +197,8 @@ export const DBProvider = (props: any) => {
         showModal,
         setShowModal,
         setSearchInput,
+        notesLoaded,
+        error
     }
 
     return (
