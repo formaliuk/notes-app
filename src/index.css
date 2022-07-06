@@ -47,6 +47,11 @@ p {
   font-family: "FuturaPTBook";
 }
 
+textarea {
+ height: 300px;
+ margin-bottom: 20px;
+}
+
 .header {
   background: #2b3233;
   border-radius: 5px;

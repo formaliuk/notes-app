@@ -25,7 +25,6 @@ function NoteForm() {
             onChange={(e) => setProcessingNote({title: processingNote.title, body: e.target.value})}
             className="form-control bg-dark text-light border-secondary"
             id="exampleFormControlTextarea1"
-            style={{height: '300px'}}
           />
         </div>
       </form>
