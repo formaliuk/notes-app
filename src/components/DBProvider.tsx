@@ -1,20 +1,23 @@
-import React, {createContext, useEffect, useState} from 'react';
-import {openDB} from 'idb';
-import {IDBPDatabase} from "idb/build/entry";
-import {useToggle} from "../hooks/useToggle";
-import {State, EditableNote, Note} from "../types/data";
+import React, { createContext, useEffect, useState } from "react";
+import { openDB } from "idb";
+import { IDBPDatabase } from "idb/build/entry";
+import { useToggle } from "../hooks/useToggle";
+import { State, EditableNote, Note } from "../types/data";
 
 export const DBContext = createContext<State | undefined>(undefined);
 
-export const DBProvider = (props: any) => {
+export const DBProvider = ({ children }: any) => {
   const [isAdding, setIsAdding] = useToggle(false);
   const [isEditing, setIsEditing] = useToggle(false);
   const [activeNote, setActiveNote] = useState<Note | null>(null);
-  const [processingNote, setProcessingNote] = useState<EditableNote >({title:"", body:""});
+  const [processingNote, setProcessingNote] = useState<EditableNote>({
+    title: "",
+    body: "",
+  });
   const [showModal, setShowModal] = useState(false);
   const [notes, setNotes] = useState<Note[]>([]);
   const [notesLoaded, setNotesLoaded] = useToggle(false);
-  const [searchInput, setSearchInput] = useState('')
+  const [searchInput, setSearchInput] = useState("");
   const [db, setDb] = useState<IDBPDatabase | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -23,57 +26,65 @@ export const DBProvider = (props: any) => {
 
     async function connectToDb() {
       try {
-        const db = await openDB('notesDb', 2, {
+        const db = await openDB("notesDb", 2, {
           upgrade(db) {
-            db.createObjectStore('notes', {keyPath: 'id', autoIncrement:true});
-          }
+            db.createObjectStore("notes", {
+              keyPath: "id",
+              autoIncrement: true,
+            });
+          },
         });
         setDb(db);
-      } catch(err) {
+      } catch (err) {
         console.log("Db connection error");
         // @ts-ignore
         setError(err.message);
       }
-
     }
   }, []);
 
   useEffect(() => {
-    if(db !== null) getNotes();
-  }, [db])
+    if (db !== null) getNotes();
+  }, [db]);
 
-  async function getNotes() {
-    let tx = db!.transaction('notes');
-    let notesStore = tx.objectStore('notes');
-    let notes = await notesStore.getAll();
-    const sortedNotes = notes.sort((a, b) => b.createdOn - a.createdOn)
+  const getNotes = async function () {
+    const tx = db!.transaction("notes");
+    const notesStore = tx.objectStore("notes");
+    const notes = await notesStore.getAll();
+    const sortedNotes = notes.sort((a, b) => b.createdOn - a.createdOn);
     setNotes(sortedNotes);
     setActiveNote(notes[0]);
     setNotesLoaded();
-  }
+  };
 
   const filterNotes = function () {
     return notes.filter(function (note) {
-        return note.body.toLowerCase().includes(searchInput) || note.title.toLowerCase().includes(searchInput)
-      })
-  }
+      return (
+        note.body.toLowerCase().includes(searchInput) ||
+        note.title.toLowerCase().includes(searchInput)
+      );
+    });
+  };
 
   const addNote = async function () {
-    if(isAdding) {
-      let tx = db!.transaction('notes', 'readwrite');
+    if (isAdding) {
+      const tx = db!.transaction("notes", "readwrite");
       try {
-        const noteId = await tx.objectStore('notes').add({
+        const noteId = await tx.objectStore("notes").add({
           title: processingNote.title,
           body: processingNote.body,
-          createdOn: Date.now()
+          createdOn: Date.now(),
         });
-        const createdNote: Note = await tx.objectStore('notes').get(noteId)
-        setNotes((prevNotes) => [{
-          ...createdNote
-        }, ...prevNotes]);
+        const createdNote: Note = await tx.objectStore("notes").get(noteId);
+        setNotes((prevNotes) => [
+          {
+            ...createdNote,
+          },
+          ...prevNotes,
+        ]);
         setActiveNote(createdNote);
-      } catch(err) {
-        console.log("Add to db error")
+      } catch (err) {
+        console.log("Add to db error");
         // @ts-ignore
         setError(err.message);
       }
@@ -85,27 +96,27 @@ export const DBProvider = (props: any) => {
       setActiveNote(null);
     }
     setIsAdding();
-  }
+  };
 
   const updateNote = async function () {
-    if(isEditing) {
-      let tx = db!.transaction('notes', 'readwrite');
+    if (isEditing) {
+      const tx = db!.transaction("notes", "readwrite");
       try {
-        await tx.objectStore('notes').put({
+        await tx.objectStore("notes").put({
           title: processingNote.title,
           body: processingNote.body,
           id: activeNote!.id,
-          createdOn: activeNote?.createdOn
+          createdOn: activeNote?.createdOn,
         });
         const index = notes.findIndex((note) => note.id === activeNote!.id);
-        setNotes(notes => {
+        setNotes((notes) => {
           const newNotes = [...notes];
           newNotes[index].title = processingNote.title;
           newNotes[index].body = processingNote.body;
           return newNotes;
-        })
-      } catch(err) {
-        console.log("Update db error")
+        });
+      } catch (err) {
+        console.log("Update db error");
         // @ts-ignore
         setError(err.message);
       }
@@ -116,22 +127,22 @@ export const DBProvider = (props: any) => {
       });
     }
     setIsEditing();
-  }
-  
-  const deleteNote = () => {
-    let tx = db!.transaction('notes', 'readwrite');
+  };
+
+  const deleteNote = async function () {
+    const tx = db!.transaction("notes", "readwrite");
     try {
-      const notesStore = tx.objectStore('notes');
+      const notesStore = tx.objectStore("notes");
       notesStore.delete(activeNote!.id);
-      const newNotes = notes.filter(note => note.id !== activeNote!.id);
+      const newNotes = notes.filter((note) => note.id !== activeNote!.id);
       setNotes(newNotes);
       setActiveNote(newNotes[0]);
-    } catch(err) {
-      console.log("Delete from db error")
+    } catch (err) {
+      console.log("Delete from db error");
       // @ts-ignore
       setError(err.message);
     }
-  }
+  };
 
   const value: State = {
     isAdding,
@@ -151,12 +162,8 @@ export const DBProvider = (props: any) => {
     setShowModal,
     setSearchInput,
     notesLoaded,
-    error
-  }
+    error,
+  };
 
-  return (
-    <DBContext.Provider value={value}>
-      {props.children}
-    </DBContext.Provider>
-  );
-}
+  return <DBContext.Provider value={value}>{children}</DBContext.Provider>;
+};

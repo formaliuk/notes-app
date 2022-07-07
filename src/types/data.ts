@@ -5,7 +5,7 @@ export interface EditableNote {
   body: string;
 }
 
-export interface Note extends EditableNote{
+export interface Note extends EditableNote {
   id: number;
   createdOn: number;
 }
@@ -16,9 +16,9 @@ export interface State {
   setIsAdding: () => void;
   setIsEditing: () => void;
   activeNote: Note | null;
-  setActiveNote:  React.Dispatch<React.SetStateAction<Note | null>>;
+  setActiveNote: React.Dispatch<React.SetStateAction<Note | null>>;
   processingNote: EditableNote;
-  setProcessingNote:  React.Dispatch<React.SetStateAction<EditableNote>>;
+  setProcessingNote: React.Dispatch<React.SetStateAction<EditableNote>>;
   notes: Note[];
   filterNotes: () => Note[];
   addNote: () => void;
