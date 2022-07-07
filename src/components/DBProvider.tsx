@@ -6,7 +6,7 @@ import { State, EditableNote, Note } from "../types/data";
 
 export const DBContext = createContext<State | undefined>(undefined);
 
-export const DBProvider = ({ children }: any) => {
+export const DBProvider = ({children}: any) => {
   const [isAdding, setIsAdding] = useToggle(false);
   const [isEditing, setIsEditing] = useToggle(false);
   const [activeNote, setActiveNote] = useState<Note | null>(null);
@@ -165,5 +165,7 @@ export const DBProvider = ({ children }: any) => {
     error,
   };
 
-  return <DBContext.Provider value={value}>{children}</DBContext.Provider>;
+  return (
+    <DBContext.Provider value={value}>{children}</DBContext.Provider>
+  );
 };
