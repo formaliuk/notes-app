@@ -2,7 +2,6 @@ import React from "react";
 
 export interface EditableNote {
   title: string;
-  body: string;
 }
 
 export interface Note extends EditableNote {
@@ -23,6 +22,7 @@ export interface State {
   filterNotes: () => Note[];
   addNote: () => void;
   updateNote: () => void;
+  periodicUpdateNote: () => void;
   deleteNote: () => void;
   showModal: boolean;
   setShowModal: React.Dispatch<React.SetStateAction<boolean>>;
@@ -33,7 +33,6 @@ export interface State {
 
 export interface ListItemProps {
   title: string;
-  body: string;
   isActive: boolean;
   createdOn: number;
 }

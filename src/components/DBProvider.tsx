@@ -12,7 +12,6 @@ export const DBProvider = ({children}: any) => {
   const [activeNote, setActiveNote] = useState<Note | null>(null);
   const [processingNote, setProcessingNote] = useState<EditableNote>({
     title: "",
-    body: "",
   });
   const [showModal, setShowModal] = useState(false);
   const [notes, setNotes] = useState<Note[]>([]);
@@ -60,7 +59,6 @@ export const DBProvider = ({children}: any) => {
   const filterNotes = function () {
     return notes.filter(function (note) {
       return (
-        note.body.toLowerCase().includes(searchInput) ||
         note.title.toLowerCase().includes(searchInput)
       );
     });
@@ -72,7 +70,6 @@ export const DBProvider = ({children}: any) => {
       try {
         const noteId = await tx.objectStore("notes").add({
           title: processingNote.title,
-          body: processingNote.body,
           createdOn: Date.now(),
         });
         const createdNote: Note = await tx.objectStore("notes").get(noteId);
@@ -91,7 +88,6 @@ export const DBProvider = ({children}: any) => {
     } else {
       setProcessingNote({
         title: "",
-        body: "",
       });
       setActiveNote(null);
     }
@@ -104,7 +100,6 @@ export const DBProvider = ({children}: any) => {
       try {
         await tx.objectStore("notes").put({
           title: processingNote.title,
-          body: processingNote.body,
           id: activeNote!.id,
           createdOn: activeNote?.createdOn,
         });
@@ -112,7 +107,6 @@ export const DBProvider = ({children}: any) => {
         setNotes((notes) => {
           const newNotes = [...notes];
           newNotes[index].title = processingNote.title;
-          newNotes[index].body = processingNote.body;
           return newNotes;
         });
       } catch (err) {
@@ -123,11 +117,28 @@ export const DBProvider = ({children}: any) => {
     } else {
       setProcessingNote({
         title: activeNote!.title,
-        body: activeNote!.body,
       });
     }
     setIsEditing();
   };
+
+  const periodicUpdateNote = async function () {
+    if (isEditing) {
+      const tx = db!.transaction("notes", "readwrite");
+      try {
+        await tx.objectStore("notes").put({
+          title: processingNote.title,
+          id: activeNote!.id,
+          createdOn: activeNote?.createdOn,
+        });
+      }
+      catch (err) {
+        console.log("Update db error");
+        // @ts-ignore
+        setError(err.message);
+      }
+    }
+  }
 
   const deleteNote = async function () {
     const tx = db!.transaction("notes", "readwrite");
@@ -157,6 +168,7 @@ export const DBProvider = ({children}: any) => {
     filterNotes,
     addNote,
     updateNote,
+    periodicUpdateNote,
     deleteNote,
     showModal,
     setShowModal,

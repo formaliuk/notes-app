@@ -2,43 +2,44 @@ import React from "react";
 import { useDbContext } from "../hooks/useDbContext";
 
 function NoteForm() {
-  const { processingNote, setProcessingNote } = useDbContext();
+  const { processingNote, setProcessingNote, updateNote, periodicUpdateNote } =
+    useDbContext();
+
+  let typingTimer: any;
+  const doneTypingInterval = 3000;
+
+  const handleKeyDown = () => {
+    clearTimeout(typingTimer);
+  };
+
+  const handleKeyUp = () => {
+    clearTimeout(typingTimer);
+    typingTimer = setTimeout(periodicUpdateNote, doneTypingInterval);
+  };
+
+  const handleBlur = function (e: any) {
+    setProcessingNote({
+      title: e.target.value,
+    });
+    updateNote();
+  };
 
   return (
     <>
       <form>
         <div className="form-group mt-1 me-2">
           <label htmlFor="exampleFormControlInput1" className="text-light">
-            Note header
+            Note Markdown
           </label>
-          <input
+          <textarea
             value={processingNote.title}
-            onChange={(e) =>
-              setProcessingNote({
-                title: e.target.value,
-                body: processingNote.body,
-              })
-            }
-            type="text"
+            onChange={(e) => setProcessingNote({ title: e.target.value })}
+            onKeyUp={handleKeyUp}
+            onKeyDown={handleKeyDown}
+            onBlur={handleBlur}
             className="form-control bg-dark text-light border-secondary"
             id="exampleFormControlInput1"
             placeholder="Create a heading for your note"
-          />
-        </div>
-        <div className="form-group mt-3 me-2">
-          <label htmlFor="exampleFormControlTextarea1" className="text-light">
-            Note body
-          </label>
-          <textarea
-            value={processingNote.body}
-            onChange={(e) =>
-              setProcessingNote({
-                title: processingNote.title,
-                body: e.target.value,
-              })
-            }
-            className="form-control bg-dark text-light border-secondary"
-            id="exampleFormControlTextarea1"
           />
         </div>
       </form>

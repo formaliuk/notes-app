@@ -1,8 +1,9 @@
 import React from "react";
 import { Card } from "react-bootstrap";
 import { ListItemProps } from "../types/data";
+import ReactMarkdown from 'react-markdown'
 
-function ListItem({ title, body, isActive, createdOn }: ListItemProps) {
+function ListItem({ title, isActive, createdOn }: ListItemProps) {
   return (
     <Card
       className={
@@ -12,8 +13,12 @@ function ListItem({ title, body, isActive, createdOn }: ListItemProps) {
       }
     >
       <Card.Body className="text-light">
-        <Card.Title>{title}</Card.Title>
-        <Card.Text>{body.substring(0, 50)}</Card.Text>
+        <Card.Title>
+          {title !== ''
+              ? <ReactMarkdown children={title.substring(0, 50)} />
+              : <div className="text-secondary">Empty note</div>
+          }
+        </Card.Title>
       </Card.Body>
       <Card.Footer>
         <small className="text-muted">

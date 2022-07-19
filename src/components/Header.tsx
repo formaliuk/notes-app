@@ -30,11 +30,11 @@ function Header() {
             <>
               <Button
                 onClick={updateNote}
-                className="me-2"
-                variant={isEditing ? "success" : "secondary"}
+                className={isEditing ? "me-2 disabled" : "me-2"}
+                variant="secondary"
                 size={"sm"}
               >
-                {isEditing ? "Confirm" : "Edit"}
+                Edit
               </Button>
               <Button
                 onClick={() => setShowModal(true)}

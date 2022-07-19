@@ -2,6 +2,8 @@ import React from "react";
 import { NoteForm } from "./NoteForm";
 import { useDbContext } from "../hooks/useDbContext";
 import { Loader } from "./Loader";
+import ReactMarkdown from 'react-markdown'
+
 
 function WorkSpace() {
   const { activeNote, isAdding, isEditing, notesLoaded } = useDbContext();
@@ -12,11 +14,10 @@ function WorkSpace() {
 
   if (!activeNote)
     return <h5 className="text-light p-5">You can add a note here</h5>;
+  else if (activeNote.title === '')
+    return <p className="text-secondary note">Empty note</p>
   return (
-    <div className="text-light note">
-      <h4 className="fs-3">{activeNote.title}</h4>
-      <p>{activeNote.body}</p>
-    </div>
+    <ReactMarkdown children={activeNote.title} className="text-light note"/>
   );
 }
 

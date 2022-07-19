@@ -28,11 +28,6 @@ function SideBar() {
                 ? processingNote.title
                 : note.title
             }
-            body={
-              note.id === activeNote?.id && isEditing
-                ? processingNote.body
-                : note.body
-            }
             createdOn={note.createdOn}
           />
         </li>
