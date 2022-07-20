@@ -70,3 +70,33 @@ textarea {
   margin-bottom: 20px;
   box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
 }
+
+.table-title {
+  margin-top: 5px;
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+.cheatsheet {
+  width: 100%;
+  margin-top: 4px;
+  margin-bottom: 4px;
+  border-radius: 3px;
+  border-collapse: collapse;
+  border-width: 1px;
+  border-color: #716062;
+  border-style: solid;
+  color: #ffffff;
+}
+
+.cheatsheet td,
+.cheatsheet th {
+  border-width: 1px;
+  border-color: #716062;
+  border-style: solid;
+  padding: 5px;
+}
+
+.cheatsheet thead {
+  background-color: #222529;
+}

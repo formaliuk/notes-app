@@ -1,7 +1,8 @@
 import React from "react";
-import { Button } from "react-bootstrap";
+import { Button, OverlayTrigger, Tooltip } from "react-bootstrap";
 import { SearchBox } from "./SearchBox";
 import { useDbContext } from "../hooks/useDbContext";
+import { Cheatsheet } from "./Cheatsheet";
 
 function Header() {
   const {
@@ -14,6 +15,7 @@ function Header() {
     notesLoaded,
   } = useDbContext();
 
+  // @ts-ignore
   return (
     <div className="d-flex flex-row m-2 mt-3 justify-content-end">
       {notesLoaded && (
@@ -46,6 +48,18 @@ function Header() {
               </Button>
             </>
           )}
+          <OverlayTrigger
+            placement="bottom"
+            overlay={
+              <Tooltip id="button-tooltip-2">
+                <Cheatsheet />
+              </Tooltip>
+            }
+          >
+            <Button className="text-light me-2" variant="outline-secondary">
+              ?
+            </Button>
+          </OverlayTrigger>
           <SearchBox />
         </>
       )}

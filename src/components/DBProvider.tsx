@@ -6,7 +6,7 @@ import { State, EditableNote, Note } from "../types/data";
 
 export const DBContext = createContext<State | undefined>(undefined);
 
-export const DBProvider = ({children}: any) => {
+export const DBProvider = ({ children }: any) => {
   const [isAdding, setIsAdding] = useToggle(false);
   const [isEditing, setIsEditing] = useToggle(false);
   const [activeNote, setActiveNote] = useState<Note | null>(null);
@@ -58,9 +58,7 @@ export const DBProvider = ({children}: any) => {
 
   const filterNotes = function () {
     return notes.filter(function (note) {
-      return (
-        note.title.toLowerCase().includes(searchInput)
-      );
+      return note.title.toLowerCase().includes(searchInput);
     });
   };
 
@@ -131,14 +129,13 @@ export const DBProvider = ({children}: any) => {
           id: activeNote!.id,
           createdOn: activeNote?.createdOn,
         });
-      }
-      catch (err) {
+      } catch (err) {
         console.log("Update db error");
         // @ts-ignore
         setError(err.message);
       }
     }
-  }
+  };
 
   const deleteNote = async function () {
     const tx = db!.transaction("notes", "readwrite");
@@ -177,7 +174,5 @@ export const DBProvider = ({children}: any) => {
     error,
   };
 
-  return (
-    <DBContext.Provider value={value}>{children}</DBContext.Provider>
-  );
+  return <DBContext.Provider value={value}>{children}</DBContext.Provider>;
 };

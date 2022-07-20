@@ -29,7 +29,7 @@ function NoteForm() {
       <form>
         <div className="form-group mt-1 me-2">
           <label htmlFor="exampleFormControlInput1" className="text-light">
-            Note Markdown
+            Note with Markdown syntax
           </label>
           <textarea
             value={processingNote.title}
